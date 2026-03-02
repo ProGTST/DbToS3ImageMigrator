@@ -1,9 +1,0 @@
-{
-    "db": {
-        "connectionString": ""
-    },
-    "aws": {
-        "region": "",
-        "bucket": ""
-    }
-}

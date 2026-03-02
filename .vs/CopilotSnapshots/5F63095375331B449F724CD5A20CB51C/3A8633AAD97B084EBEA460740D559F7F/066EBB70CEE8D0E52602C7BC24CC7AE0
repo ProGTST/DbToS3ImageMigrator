@@ -1,0 +1,108 @@
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Amazon;
+using Amazon.S3;
+using Amazon.S3.Model;
+
+namespace BodyImageMigrator;
+
+/// <summary>
+/// S3 への画像アップロード。
+/// 認証は環境変数 AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY を使用。
+/// </summary>
+public class S3Uploader : IDisposable
+{
+    private const string BucketName = "spc-crs-stg-apne1-s3-reports";
+    private readonly IAmazonS3 _s3;
+    private readonly bool _overwrite;
+    private readonly bool _disposeClient;
+
+    public S3Uploader(bool overwrite)
+    {
+        var region = Environment.GetEnvironmentVariable("AWS_REGION") ?? "ap-northeast-1";
+        _s3 = new AmazonS3Client(RegionEndpoint.GetBySystemName(region));
+        _overwrite = overwrite;
+        _disposeClient = true;
+    }
+
+    // Allow external IAmazonS3 to be injected. When injecting, this instance will not dispose the client.
+    public S3Uploader(IAmazonS3 s3, bool overwrite)
+    {
+        _s3 = s3 ?? throw new ArgumentNullException(nameof(s3));
+        _overwrite = overwrite;
+        _disposeClient = false;
+    }
+
+    /// <summary>
+    /// S3 キーを生成する。istcd={ISTCD}/ryono={RYONO}/bodyinfo/{MEMONO}_bg.png または _draw.png
+    /// </summary>
+    public static string GetS3Key(string istcd, int ryono, long memono, bool isBg)
+    {
+        var suffix = isBg ? "_bg.png" : "_draw.png";
+        return $"istcd={istcd}/ryono={ryono}/bodyinfo/{memono}{suffix}";
+    }
+
+    /// <summary>
+    /// オブジェクトが存在するか確認する。
+    /// Uses ListObjectsV2 to avoid using exceptions for control flow.
+    /// </summary>
+    public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
+    {
+        var request = new ListObjectsV2Request
+        {
+            BucketName = BucketName,
+            Prefix = key,
+            MaxKeys = 1
+        };
+        var response = await _s3.ListObjectsV2Async(request, cancellationToken).ConfigureAwait(false);
+        return response.S3Objects != null && response.S3Objects.Any(o => o.Key == key);
+    }
+
+    /// <summary>
+    /// 画像バイトを S3 にアップロードする。Overwrite が false で既に存在する場合は false を返す。
+    /// </summary>
+    /// <returns>アップロードした場合 true、既存のためスキップした場合 false</returns>
+    public async Task<(bool Uploaded, string? Error)> PutImageAsync(
+        string key,
+        byte[] bytes,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_overwrite)
+        {
+            var exists = await ExistsAsync(key, cancellationToken).ConfigureAwait(false);
+            if (exists)
+                return (false, null);
+        }
+
+        try
+        {
+            using var ms = new MemoryStream(bytes, writable: false);
+            var request = new PutObjectRequest
+            {
+                BucketName = BucketName,
+                Key = key,
+                InputStream = ms,
+                ContentType = "image/png",
+                AutoCloseStream = false
+            };
+            await _s3.PutObjectAsync(request, cancellationToken).ConfigureAwait(false);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposeClient)
+        {
+            _s3.Dispose();
+        }
+        GC.SuppressFinalize(this);
+    }
+}

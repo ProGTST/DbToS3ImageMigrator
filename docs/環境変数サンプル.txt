@@ -1,0 +1,12 @@
+# BodyImageMigrator 用 環境変数サンプル
+# このファイルに実際の値を書かず、実行環境で環境変数として設定してください。
+# 例: PowerShell では
+#   $env:BODYIMAGE_DB_CONNECTION = "Server=...;Database=...;User Id=...;Password=...;TrustServerCertificate=true"
+#   $env:AWS_REGION = "ap-northeast-1"
+#   $env:AWS_ACCESS_KEY_ID = "..."
+#   $env:AWS_SECRET_ACCESS_KEY = "..."
+
+BODYIMAGE_DB_CONNECTION=Server=<SQL Server のホスト>;Database=<DB名>;User Id=<ユーザー>;Password=<パスワード>;TrustServerCertificate=true
+AWS_REGION=ap-northeast-1
+AWS_ACCESS_KEY_ID=<AWS アクセスキー>
+AWS_SECRET_ACCESS_KEY=<AWS シークレットキー>

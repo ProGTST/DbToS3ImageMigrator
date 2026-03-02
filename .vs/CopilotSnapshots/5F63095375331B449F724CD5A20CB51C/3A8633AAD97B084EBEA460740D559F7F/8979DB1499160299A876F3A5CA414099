@@ -1,0 +1,42 @@
+﻿using System;
+using System.IO;
+using BenchmarkDotNet.Attributes;
+using Amazon.S3.Model;
+using BodyImageMigrator;
+using Microsoft.VSDiagnostics;
+
+namespace BodyImageMigrator.Benchmarks
+{
+    [CPUUsageDiagnoser]
+    public class S3UploaderBenchmarks
+    {
+        private byte[] _bytes;
+        private string _keyBg;
+        [GlobalSetup]
+        public void Setup()
+        {
+            _bytes = new byte[1024];
+            new Random(42).NextBytes(_bytes);
+            _keyBg = S3Uploader.GetS3Key("ISTCD", 1, 12345, true);
+        }
+
+        [Benchmark]
+        public string Benchmark_GetS3Key_Bg() => S3Uploader.GetS3Key("ISTCD", 123, 456789, true);
+        [Benchmark]
+        public string Benchmark_GetS3Key_Draw() => S3Uploader.GetS3Key("ISTCD", 123, 456789, false);
+        [Benchmark]
+        public PutObjectRequest Benchmark_CreatePutObjectRequest()
+        {
+            var ms = new MemoryStream(_bytes, writable: false);
+            var request = new PutObjectRequest
+            {
+                BucketName = "spc-crs-stg-apne1-s3-reports",
+                Key = _keyBg,
+                InputStream = ms,
+                ContentType = "image/png",
+                AutoCloseStream = false
+            };
+            return request;
+        }
+    }
+}

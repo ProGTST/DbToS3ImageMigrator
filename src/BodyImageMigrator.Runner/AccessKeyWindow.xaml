@@ -1,0 +1,24 @@
+<Window x:Class="BodyImageMigrator.Runner.AccessKeyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="アクセスキー設定 - BodyImageMigrator" Height="240" Width="500"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="24,24,24,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="*" MinWidth="260"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" x:Name="TxtUserLabel" Margin="0,0,0,16"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="アクセスキー" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtAccessKeyId" Padding="6,4" VerticalContentAlignment="Center" Margin="0,0,0,12"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="シークレットアクセスキー" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <PasswordBox Grid.Row="2" Grid.Column="1" x:Name="TxtSecretAccessKey" Padding="6,4" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
+        <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" x:Name="BtnSet" Content="設定" Width="120" Height="32" Click="BtnSet_Click" HorizontalAlignment="Center"/>
+    </Grid>
+</Window>

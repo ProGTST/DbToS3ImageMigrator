@@ -1,0 +1,25 @@
+No	論理名	物理名	データ型	必須
+1	身体図メモNo 	MEMONO	bigint identity	Yes
+2	施設コード 	ISTCD	varchar(5)	 
+3	利用者No 	RYONO	int	Yes
+4	担当者No 	TNTNO	int	 
+5	記録日時 	RECDATE	datetime	 
+6	タイトル 	TITLE	nvarchar(20)	 
+7	書き込みデータ 	DRAWDATA	varchar(max)	 
+8	背景データ 	BGDATA	varchar(max)	 
+9	メモ内容 	MEMO	nvarchar(1000)	 
+10	ロックフラグ 	LOCKFLG	bit	Yes
+11	更新回数 	UPDCNT	int	Yes
+12	登録日時 	INSDATE	datetime	 
+13	登録プログラムID 	INSPGID	varchar(20)	 
+14	登録プログラム名 	INSPGNAME	nvarchar(50)	 
+15	登録ユーザNo 	INSUSERNO	int	Yes
+16	登録ログインNo 	INSLOGINNO	bigint	Yes
+17	登録ログNo 	INSLOGNO	bigint	Yes
+18	更新日時 	UPDDATE	datetime	 
+19	更新プログラムID 	UPDPGID	varchar(20)	 
+20	更新プログラム名 	UPDPGNAME	nvarchar(50)	 
+21	更新ユーザNo 	UPDUSERNO	int	Yes
+22	更新ログインNo 	UPDLOGINNO	bigint	Yes
+23	更新ログNo 	UPDLOGNO	bigint	Yes
+24	削除フラグ 	DLTFLG	bit	Yes

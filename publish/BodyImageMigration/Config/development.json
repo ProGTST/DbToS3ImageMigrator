@@ -1,9 +1,9 @@
 {
     "db": {
-        "connectionString": "Data Source=192.168.31.104\\SLCSQLSERVER;Initial Catalog=SilverLandCare_TDK;User ID=sa;Password=silver;Persist Security Info=True;Encrypt=True;TrustServerCertificate=True"
+        "connectionString": ""
     },
     "aws": {
-        "region": "ap-northeast-1",
-        "bucket": "spc-crs-stg-apne1-s3-reports"
+        "region": "",
+        "bucket": ""
     }
-  }
+}

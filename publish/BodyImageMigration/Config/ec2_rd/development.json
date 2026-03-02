@@ -1,9 +1,0 @@
-{
-    "db": {
-        "connectionString": "Data Source=localhost;Initial Catalog=SilverLandCare;Integrated Security=True;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Application Name='SQL Server Management Studio';Command Timeout=0"
-    },
-    "aws": {
-        "region": "ap-northeast-1",
-        "bucket": "spc-crs-stg-apne1-s3-reports"
-    }
-  }

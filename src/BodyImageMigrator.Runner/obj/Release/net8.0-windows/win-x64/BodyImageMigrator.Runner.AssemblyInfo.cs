@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BodyImageMigrator.Runner")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a2baa1caf7b1c44ea5b08ef7c13a43f554968599")]
 [assembly: System.Reflection.AssemblyProductAttribute("BodyImageMigrator.Runner")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BodyImageMigrator.Runner")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

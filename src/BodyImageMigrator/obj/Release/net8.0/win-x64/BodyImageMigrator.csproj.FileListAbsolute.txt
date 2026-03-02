@@ -231,3 +231,4 @@ C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator\obj\Release\net8.0\win-x64
 C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator\obj\Release\net8.0\win-x64\BodyImageMigrator.pdb
 C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator\obj\Release\net8.0\win-x64\BodyImageMigrator.genruntimeconfig.cache
 C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator\obj\Release\net8.0\win-x64\ref\BodyImageMigrator.dll
+C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator\obj\Release\net8.0\win-x64\BodyImageMigrator.sourcelink.json

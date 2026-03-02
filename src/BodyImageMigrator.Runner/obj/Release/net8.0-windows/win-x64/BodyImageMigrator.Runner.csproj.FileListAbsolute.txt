@@ -518,3 +518,4 @@ C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator.Runner\obj\Release\net8.0-
 C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator.Runner\obj\Release\net8.0-windows\win-x64\LoginWindow.baml
 C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator.Runner\obj\Release\net8.0-windows\win-x64\AccessKeyWindow.g.cs
 C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator.Runner\obj\Release\net8.0-windows\win-x64\LoginWindow.g.cs
+C:\DevLocal\DbToS3ImageMigrator\src\BodyImageMigrator.Runner\obj\Release\net8.0-windows\win-x64\BodyImageMigrator.Runner.sourcelink.json

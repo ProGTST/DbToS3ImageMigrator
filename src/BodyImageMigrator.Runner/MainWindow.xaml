@@ -23,7 +23,6 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,12">
                     <CheckBox x:Name="ChkDryRun" Content="ドライラン（アップロードしない）" VerticalAlignment="Center" Margin="0,0,20,0"/>
@@ -40,16 +39,6 @@
                     <TextBlock Text="～" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <DatePicker x:Name="DpTo" Width="180" MinWidth="160" HorizontalAlignment="Left"/>
                 </StackPanel>
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="ログ出力先" VerticalAlignment="Center" Margin="0,0,12,8"/>
-                <Grid Grid.Row="3" Grid.Column="1" Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MinWidth="200"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="TxtOutputPath" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
-                             ToolTip="未入力時は publish\BodyImageMigration を使用"/>
-                    <Button x:Name="BtnBrowse" Grid.Column="1" Content="参照..." Width="70" Click="BtnBrowse_Click"/>
-                </Grid>
             </Grid>
         </GroupBox>
 

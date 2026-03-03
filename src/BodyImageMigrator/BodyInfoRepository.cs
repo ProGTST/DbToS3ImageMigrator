@@ -58,8 +58,8 @@ public class BodyInfoRepository
 
         if (to.HasValue)
         {
-            conditions.Add("RECDATE < @ToExclusive");
-            param.Add("ToExclusive", to.Value.Date.AddDays(1));
+            conditions.Add("RECDATE <= @ToExclusive");
+            param.Add("ToExclusive", new DateTime(to.Value.Year, to.Value.Month, to.Value.Day, 23, 59, 59));
         }
 
         if (excludeDeleted)
@@ -91,10 +91,15 @@ ORDER BY MEMONO".Trim();
         return (list, sql);
     }
 
-    /// <summary>実行SQLをコンソールに出力する</summary>
+    /// <summary>実行SQLをコンソールに出力する（日付は yyyy-M-d H:mm:ss 形式）</summary>
     private static void LogSql(string sql, DynamicParameters param)
     {
-        var paramStr = string.Join(", ", param.ParameterNames.Select(n => $"{n}={param.Get<object>(n)}"));
+        var paramStr = string.Join(", ", param.ParameterNames.Select(n =>
+        {
+            var v = param.Get<object>(n);
+            var s = v is DateTime dt ? dt.ToString("yyyy-M-d H:mm:ss") : v?.ToString() ?? "";
+            return $"{n}={s}";
+        }));
         Console.WriteLine($"実行SQL: {sql}");
         if (!string.IsNullOrEmpty(paramStr))
             Console.WriteLine($"  パラメータ: {paramStr}");

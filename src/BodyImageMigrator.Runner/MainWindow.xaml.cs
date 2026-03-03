@@ -20,9 +20,11 @@ public partial class MainWindow : Window
         for (var i = 1; i <= 10; i++)
             CmbParallel.Items.Add(i);
         CmbParallel.SelectedIndex = 4; // 5
-        // 最大件数・利用者No: 貼り付け時も数字のみに制限
+        // 最大件数・利用者No・MEMONO: 貼り付け時も数字のみに制限
         System.Windows.DataObject.AddPastingHandler(TxtLimit, OnTxtLimitPaste);
         System.Windows.DataObject.AddPastingHandler(TxtRyono, OnTxtRyonoPaste);
+        System.Windows.DataObject.AddPastingHandler(TxtMemonoFrom, OnTxtMemonoPaste);
+        System.Windows.DataObject.AddPastingHandler(TxtMemonoTo, OnTxtMemonoPaste);
     }
 
     private void OnTxtLimitPaste(object sender, DataObjectPastingEventArgs e)
@@ -33,6 +35,12 @@ public partial class MainWindow : Window
     private void OnTxtRyonoPaste(object sender, DataObjectPastingEventArgs e)
     {
         PasteDigitsOnly(sender, e, TxtRyono);
+    }
+
+    private void OnTxtMemonoPaste(object sender, DataObjectPastingEventArgs e)
+    {
+        if (sender is System.Windows.Controls.TextBox tb)
+            PasteDigitsOnly(sender, e, tb);
     }
 
     private static void PasteDigitsOnly(object sender, DataObjectPastingEventArgs e, System.Windows.Controls.TextBox target)
@@ -68,6 +76,12 @@ public partial class MainWindow : Window
         e.Handled = !Regex.IsMatch(e.Text, @"^\d+$");
     }
 
+    /// <summary>身体図メモNo: 整数のみ入力可能</summary>
+    private void TxtMemono_PreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+        e.Handled = !Regex.IsMatch(e.Text, @"^\d+$");
+    }
+
     private MigratorOptions BuildOptions()
     {
         var opts = new MigratorOptions
@@ -75,6 +89,8 @@ public partial class MainWindow : Window
             DryRun = ChkDryRun.IsChecked == true,
             Overwrite = ChkOverwrite.IsChecked == true,
             ExcludeDeleted = ChkExcludeDeleted.IsChecked == true,
+            MemonoFrom = long.TryParse(TxtMemonoFrom.Text?.Trim(), out var memonoFrom) && memonoFrom >= 0 ? memonoFrom : null,
+            MemonoTo = long.TryParse(TxtMemonoTo.Text?.Trim(), out var memonoTo) && memonoTo >= 0 ? memonoTo : null,
             Istcd = string.IsNullOrWhiteSpace(TxtIstcd.Text) ? null : TxtIstcd.Text.Trim(),
             Ryono = int.TryParse(TxtRyono.Text?.Trim(), out var ryono) && ryono >= 0 ? ryono : null,
             OutputPath = null, // 常に publish\BodyImageMigration を使用

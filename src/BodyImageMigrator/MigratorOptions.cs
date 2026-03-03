@@ -14,6 +14,12 @@ public class MigratorOptions
     /// <summary>S3に既に同一キーが存在する場合も上書きする</summary>
     public bool Overwrite { get; set; }
 
+    /// <summary>身体図メモNo（MEMONO）の範囲 開始（以上）。未指定時は制限なし</summary>
+    public long? MemonoFrom { get; set; }
+
+    /// <summary>身体図メモNo（MEMONO）の範囲 終了（以下）。未指定時は制限なし</summary>
+    public long? MemonoTo { get; set; }
+
     /// <summary>施設コードで絞り込み（未指定時は全施設）</summary>
     public string? Istcd { get; set; }
 
@@ -62,6 +68,8 @@ public class MigratorOptions
         if (DryRun) list.Add("--dry-run");
         if (Limit.HasValue) list.Add($"--limit={Limit.Value}");
         if (Overwrite) list.Add("--overwrite");
+        if (MemonoFrom.HasValue) list.Add($"--memono-from={MemonoFrom.Value}");
+        if (MemonoTo.HasValue) list.Add($"--memono-to={MemonoTo.Value}");
         if (!string.IsNullOrWhiteSpace(Istcd)) list.Add($"--istcd={Istcd}");
         if (Ryono.HasValue) list.Add($"--ryono={Ryono.Value}");
         if (From.HasValue) list.Add($"--from={From.Value:yyyy-MM-dd HH:mm:ss}");

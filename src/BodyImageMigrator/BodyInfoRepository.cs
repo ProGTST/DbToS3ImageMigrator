@@ -34,6 +34,8 @@ public class BodyInfoRepository
     /// </summary>
     /// <returns>レコード一覧と実行SQL</returns>
     public async Task<(IReadOnlyList<BodyInfoRecord> Records, string Sql)> GetRecordsAsync(
+        long? memonoFrom,
+        long? memonoTo,
         string? istcd,
         int? ryono,
         DateTime? from,
@@ -44,6 +46,18 @@ public class BodyInfoRepository
     {
         var conditions = new List<string> { "1=1" };
         var param = new DynamicParameters();
+
+        if (memonoFrom.HasValue)
+        {
+            conditions.Add("MEMONO >= @MemonoFrom");
+            param.Add("MemonoFrom", memonoFrom.Value);
+        }
+
+        if (memonoTo.HasValue)
+        {
+            conditions.Add("MEMONO <= @MemonoTo");
+            param.Add("MemonoTo", memonoTo.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(istcd))
         {

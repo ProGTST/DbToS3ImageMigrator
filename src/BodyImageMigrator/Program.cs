@@ -57,6 +57,18 @@ internal static class Program
                     { error = "--limit は 0 以上の整数を指定してください。"; return false; }
                     options.Limit = limit;
                     break;
+                case "--memono-from":
+                    if (i + 1 >= args.Length) { error = "--memono-from に値が必要です。"; return false; }
+                    if (!long.TryParse(args[++i], NumberStyles.Integer, CultureInfo.InvariantCulture, out var memonoFrom) || memonoFrom < 0)
+                    { error = "--memono-from は 0 以上の整数を指定してください。"; return false; }
+                    options.MemonoFrom = memonoFrom;
+                    break;
+                case "--memono-to":
+                    if (i + 1 >= args.Length) { error = "--memono-to に値が必要です。"; return false; }
+                    if (!long.TryParse(args[++i], NumberStyles.Integer, CultureInfo.InvariantCulture, out var memonoTo) || memonoTo < 0)
+                    { error = "--memono-to は 0 以上の整数を指定してください。"; return false; }
+                    options.MemonoTo = memonoTo;
+                    break;
                 case "--istcd":
                     if (i + 1 >= args.Length) { error = "--istcd に値が必要です。"; return false; }
                     options.Istcd = args[++i];
@@ -154,6 +166,8 @@ BodyImageMigrator - BODYINFO の身体図画像を DB から S3 に移行する
   --dry-run           アップロードせずに処理内容のみ実行
   --limit <n>         処理する最大件数（0以上、未指定は無制限）
   --overwrite         S3 に既に同一キーが存在する場合も上書き
+  --memono-from <n>   身体図メモNo（MEMONO）の範囲 開始（以上、0以上）
+  --memono-to <n>     身体図メモNo（MEMONO）の範囲 終了（以下、0以上）
   --istcd <コード>    施設コードで絞り込み
   --ryono <番号>      利用者Noで絞り込み（0以上）
   --from <日付>       記録日時（RECDATE）の開始日（yyyy-MM-dd 等）

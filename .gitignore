@@ -1,7 +1,5 @@
 publish/
 publish/BodyImageMigration/UserAccessControl/userAccessKey.json
 publish/BodyImageMigration/Config/development.json
-src/BodyImageMigrator/bin
-src/BodyImageMigrator/obj
-src/BodyImageMigrator.Runner/bin
-src/BodyImageMigrator.Runner/obj
+**/bin/
+**/obj/

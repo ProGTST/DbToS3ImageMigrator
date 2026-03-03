@@ -73,7 +73,10 @@ public class MigrationService
         var duration = endTime - startTime;
         var totalTarget = logger.SuccessCount + logger.FailureCount + logger.SkippedCount;
 
-        WriteSummaryLog(summaryPath, startTime, endTime, duration, totalTarget, logger, totalProcessed, keysSql);
+        var executedSql = string.IsNullOrEmpty(keysSql)
+            ? BodyInfoRepository.ImageDataSql
+            : keysSql + Environment.NewLine + Environment.NewLine + "画像取得:" + Environment.NewLine + BodyInfoRepository.ImageDataSql;
+        WriteSummaryLog(summaryPath, startTime, endTime, duration, totalTarget, logger, totalProcessed, executedSql);
 
         Console.WriteLine("処理完了。");
     }
@@ -164,6 +167,7 @@ public class MigrationService
             if (string.IsNullOrEmpty(keysSql)) keysSql = sql;
 
             BodyInfoRepository.LogKeysSql(sql, lastMemono, take);
+            BodyInfoRepository.LogImageDataSqlOnce();
 
             var tasks = keys.Select(key => ProcessKeyAsync(key, repository, uploader, logger, semaphore, cancellationToken));
             await Task.WhenAll(tasks).ConfigureAwait(false);

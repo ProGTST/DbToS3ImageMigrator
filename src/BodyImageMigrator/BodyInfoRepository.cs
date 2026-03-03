@@ -108,12 +108,15 @@ ORDER BY MEMONO".Trim();
         return (list, sql);
     }
 
+    /// <summary>② 1件ずつ DRAWDATA, BGDATA を取得するSQL（ログ出力用）</summary>
+    public const string ImageDataSql = "SELECT DRAWDATA, BGDATA FROM BODYINFO WITH (NOLOCK) WHERE MEMONO = @Memono";
+
     /// <summary>
     /// ② 1件ずつ DRAWDATA, BGDATA を取得（メモリ安全）
     /// </summary>
     public async Task<(string? DrawData, string? BgData)> GetImageDataAsync(long memono, CancellationToken cancellationToken = default)
     {
-        const string sql = "SELECT DRAWDATA, BGDATA FROM BODYINFO WITH (NOLOCK) WHERE MEMONO = @Memono";
+        var sql = ImageDataSql;
         await using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
@@ -128,6 +131,17 @@ ORDER BY MEMONO".Trim();
     {
         Console.WriteLine($"実行SQL(キー取得): {sql}");
         Console.WriteLine($"  パラメータ: LastMemono={lastMemono}, BatchSize={batchSize}");
+    }
+
+    private static bool _imageDataSqlLogged;
+
+    /// <summary>画像取得用SQLをログ出力（1回のみ）</summary>
+    public static void LogImageDataSqlOnce()
+    {
+        if (_imageDataSqlLogged) return;
+        _imageDataSqlLogged = true;
+        Console.WriteLine($"実行SQL(画像取得): {ImageDataSql}");
+        Console.WriteLine($"  パラメータ: Memono=各レコードのMEMONO");
     }
 
     /// <summary>キー（MEMONO, ISTCD, RYONO）のみ。画像は別クエリで取得。</summary>

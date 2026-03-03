@@ -1,2 +1,0 @@
-C:\DevLocal\DbToS3ImageMigrator\publish\Console\BodyImageMigrator.pdb
-C:\DevLocal\DbToS3ImageMigrator\publish\Console\BodyImageMigrator.exe

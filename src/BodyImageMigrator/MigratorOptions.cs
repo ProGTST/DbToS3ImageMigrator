@@ -17,6 +17,9 @@ public class MigratorOptions
     /// <summary>施設コードで絞り込み（未指定時は全施設）</summary>
     public string? Istcd { get; set; }
 
+    /// <summary>利用者Noで絞り込み（未指定時は全利用者）</summary>
+    public int? Ryono { get; set; }
+
     /// <summary>記録日時（RECDATE）の開始日（含む）。未指定時は制限なし</summary>
     public DateTime? From { get; set; }
 
@@ -60,6 +63,7 @@ public class MigratorOptions
         if (Limit.HasValue) list.Add($"--limit={Limit.Value}");
         if (Overwrite) list.Add("--overwrite");
         if (!string.IsNullOrWhiteSpace(Istcd)) list.Add($"--istcd={Istcd}");
+        if (Ryono.HasValue) list.Add($"--ryono={Ryono.Value}");
         if (From.HasValue) list.Add($"--from={From.Value:yyyy-MM-dd HH:mm:ss}");
         if (To.HasValue) list.Add($"--to={To.Value:yyyy-MM-dd HH:mm:ss}");
         if (ExcludeDeleted) list.Add("--exclude-deleted");

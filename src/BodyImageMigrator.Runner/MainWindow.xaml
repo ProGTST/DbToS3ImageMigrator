@@ -23,6 +23,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,12">
                     <CheckBox x:Name="ChkDryRun" Content="ドライラン（アップロードしない）" VerticalAlignment="Center" Margin="0,0,20,0"/>
@@ -33,8 +34,10 @@
                 </StackPanel>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="施設コード" VerticalAlignment="Center" Margin="0,0,12,8"/>
                 <TextBox x:Name="TxtIstcd" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8" Width="368" MinWidth="336" HorizontalAlignment="Left"/>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="記録日" VerticalAlignment="Center" Margin="0,0,12,8"/>
-                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="利用者No" VerticalAlignment="Center" Margin="0,0,12,8"/>
+                <TextBox x:Name="TxtRyono" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8" Width="120" HorizontalAlignment="Left" PreviewTextInput="TxtRyono_PreviewTextInput" MaxLength="12"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="記録日" VerticalAlignment="Center" Margin="0,0,12,8"/>
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
                     <DatePicker x:Name="DpFrom" Width="180" MinWidth="160" HorizontalAlignment="Left" Margin="0,0,8,0"/>
                     <TextBlock Text="～" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <DatePicker x:Name="DpTo" Width="180" MinWidth="160" HorizontalAlignment="Left"/>

@@ -20,11 +20,22 @@ public partial class MainWindow : Window
         for (var i = 1; i <= 10; i++)
             CmbParallel.Items.Add(i);
         CmbParallel.SelectedIndex = 4; // 5
-        // 最大件数: 貼り付け時も数字のみに制限
+        // 最大件数・利用者No: 貼り付け時も数字のみに制限
         System.Windows.DataObject.AddPastingHandler(TxtLimit, OnTxtLimitPaste);
+        System.Windows.DataObject.AddPastingHandler(TxtRyono, OnTxtRyonoPaste);
     }
 
     private void OnTxtLimitPaste(object sender, DataObjectPastingEventArgs e)
+    {
+        PasteDigitsOnly(sender, e, TxtLimit);
+    }
+
+    private void OnTxtRyonoPaste(object sender, DataObjectPastingEventArgs e)
+    {
+        PasteDigitsOnly(sender, e, TxtRyono);
+    }
+
+    private static void PasteDigitsOnly(object sender, DataObjectPastingEventArgs e, System.Windows.Controls.TextBox target)
     {
         if (e.SourceDataObject.GetDataPresent(System.Windows.DataFormats.Text))
         {
@@ -33,7 +44,7 @@ public partial class MainWindow : Window
             if (digitsOnly != text)
             {
                 e.CancelCommand();
-                TxtLimit.SelectedText = digitsOnly;
+                target.SelectedText = digitsOnly;
             }
         }
     }
@@ -51,6 +62,12 @@ public partial class MainWindow : Window
         e.Handled = !Regex.IsMatch(e.Text, @"^\d+$");
     }
 
+    /// <summary>利用者No: 整数のみ入力可能</summary>
+    private void TxtRyono_PreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+        e.Handled = !Regex.IsMatch(e.Text, @"^\d+$");
+    }
+
     private MigratorOptions BuildOptions()
     {
         var opts = new MigratorOptions
@@ -59,6 +76,7 @@ public partial class MainWindow : Window
             Overwrite = ChkOverwrite.IsChecked == true,
             ExcludeDeleted = ChkExcludeDeleted.IsChecked == true,
             Istcd = string.IsNullOrWhiteSpace(TxtIstcd.Text) ? null : TxtIstcd.Text.Trim(),
+            Ryono = int.TryParse(TxtRyono.Text?.Trim(), out var ryono) && ryono >= 0 ? ryono : null,
             OutputPath = null, // 常に publish\BodyImageMigration を使用
             Parallel = 5
         };

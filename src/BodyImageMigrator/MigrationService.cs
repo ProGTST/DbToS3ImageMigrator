@@ -67,6 +67,7 @@ public class MigrationService
         // ④ DBから移行データを取得
         var (records, executedSql) = await repository.GetRecordsAsync(
             _options.Istcd,
+            _options.Ryono,
             _options.From,
             _options.To,
             _options.ExcludeDeleted,

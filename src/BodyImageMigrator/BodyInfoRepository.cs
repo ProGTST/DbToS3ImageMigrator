@@ -35,6 +35,7 @@ public class BodyInfoRepository
     /// <returns>レコード一覧と実行SQL</returns>
     public async Task<(IReadOnlyList<BodyInfoRecord> Records, string Sql)> GetRecordsAsync(
         string? istcd,
+        int? ryono,
         DateTime? from,
         DateTime? to,
         bool excludeDeleted,
@@ -48,6 +49,12 @@ public class BodyInfoRepository
         {
             conditions.Add("ISTCD = @Istcd");
             param.Add("Istcd", istcd.Trim());
+        }
+
+        if (ryono.HasValue)
+        {
+            conditions.Add("RYONO = @Ryono");
+            param.Add("Ryono", ryono.Value);
         }
 
         if (from.HasValue)

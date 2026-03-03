@@ -61,6 +61,12 @@ internal static class Program
                     if (i + 1 >= args.Length) { error = "--istcd に値が必要です。"; return false; }
                     options.Istcd = args[++i];
                     break;
+                case "--ryono":
+                    if (i + 1 >= args.Length) { error = "--ryono に値が必要です。"; return false; }
+                    if (!int.TryParse(args[++i], NumberStyles.Integer, CultureInfo.InvariantCulture, out var ryono) || ryono < 0)
+                    { error = "--ryono は 0 以上の整数を指定してください。"; return false; }
+                    options.Ryono = ryono;
+                    break;
                 case "--from":
                     if (i + 1 >= args.Length) { error = "--from に値が必要です。"; return false; }
                     options.From = ParseDateTime(args[++i]);
@@ -149,6 +155,7 @@ BodyImageMigrator - BODYINFO の身体図画像を DB から S3 に移行する
   --limit <n>         処理する最大件数（0以上、未指定は無制限）
   --overwrite         S3 に既に同一キーが存在する場合も上書き
   --istcd <コード>    施設コードで絞り込み
+  --ryono <番号>      利用者Noで絞り込み（0以上）
   --from <日付>       記録日時（RECDATE）の開始日（yyyy-MM-dd 等）
   --to <日付>         記録日時（RECDATE）の終了日
   --exclude-deleted   削除済み（DLTFLG=1）を対象から除外

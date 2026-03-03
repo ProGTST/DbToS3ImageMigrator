@@ -7,10 +7,11 @@ namespace BodyImageMigrator;
 
 /// <summary>
 /// BODYINFO テーブルから移行対象レコードを取得する。
-/// 接続文字列は MigrationConfig (development.json) から取得する。
+/// メモリ対策: ①キーのみバッチ取得 ②1件ずつ DRAWDATA/BGDATA 取得。
 /// </summary>
 public class BodyInfoRepository
 {
+    private const int DefaultBatchSize = 100;
     private readonly string _connectionString;
 
     /// <summary>接続文字列を指定してリポジトリを生成。通常は MigrationConfig.Load() の DbConnectionString を渡す。</summary>
@@ -30,10 +31,12 @@ public class BodyInfoRepository
     }
 
     /// <summary>
-    /// 条件に合う BODYINFO を MEMONO 昇順で取得する。
+    /// ① キーのみバッチ取得。MEMONO > LastMemono でページング。buffered: false でストリーミング。
     /// </summary>
-    /// <returns>レコード一覧と実行SQL</returns>
-    public async Task<(IReadOnlyList<BodyInfoRecord> Records, string Sql)> GetRecordsAsync(
+    /// <returns>キー一覧と実行SQL（ログ用）</returns>
+    public async Task<(IReadOnlyList<RecordKey> Keys, string KeysSql)> GetRecordKeysBatchAsync(
+        long lastMemono,
+        int batchSize,
         long? memonoFrom,
         long? memonoTo,
         string? istcd,
@@ -41,11 +44,12 @@ public class BodyInfoRepository
         DateTime? from,
         DateTime? to,
         bool excludeDeleted,
-        int? limit,
         CancellationToken cancellationToken = default)
     {
-        var conditions = new List<string> { "1=1" };
+        var conditions = new List<string> { "MEMONO > @LastMemono" };
         var param = new DynamicParameters();
+        param.Add("LastMemono", lastMemono);
+        param.Add("BatchSize", batchSize);
 
         if (memonoFrom.HasValue)
         {
@@ -89,40 +93,54 @@ public class BodyInfoRepository
         }
 
         var whereClause = string.Join(" AND ", conditions);
-        // limit 未指定＝無制限。0以上指定時は TOP で制限（0 の場合は 0 件）
-        var topClause = limit.HasValue ? "TOP (@Limit) " : "";
-
         var sql = $@"
-SELECT {topClause}MEMONO, ISTCD, RYONO, DRAWDATA, BGDATA, ISNULL(CAST(DLTFLG AS TINYINT), 0) AS DLTFLG
+SELECT TOP (@BatchSize) MEMONO, ISTCD, RYONO
 FROM BODYINFO WITH (NOLOCK)
 WHERE {whereClause}
 ORDER BY MEMONO".Trim();
 
-        if (limit.HasValue)
-            param.Add("Limit", limit.Value);
-
-        LogSql(sql, param);
-
         await using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        var list = (await conn.QueryAsync<BodyInfoRecord>(new CommandDefinition(sql, param, cancellationToken: cancellationToken))
-            .ConfigureAwait(false)).ToList();
+        var cmd = new CommandDefinition(sql, param, transaction: null, commandTimeout: null, commandType: null, CommandFlags.None, cancellationToken);
+        var list = (await conn.QueryAsync<RecordKey>(cmd).ConfigureAwait(false)).ToList();
 
         return (list, sql);
     }
 
-    /// <summary>実行SQLをコンソールに出力する（日付は yyyy-M-d H:mm:ss 形式）</summary>
-    private static void LogSql(string sql, DynamicParameters param)
+    /// <summary>
+    /// ② 1件ずつ DRAWDATA, BGDATA を取得（メモリ安全）
+    /// </summary>
+    public async Task<(string? DrawData, string? BgData)> GetImageDataAsync(long memono, CancellationToken cancellationToken = default)
     {
-        var paramStr = string.Join(", ", param.ParameterNames.Select(n =>
-        {
-            var v = param.Get<object>(n);
-            var s = v is DateTime dt ? dt.ToString("yyyy-M-d H:mm:ss") : v?.ToString() ?? "";
-            return $"{n}={s}";
-        }));
-        Console.WriteLine($"実行SQL: {sql}");
-        if (!string.IsNullOrEmpty(paramStr))
-            Console.WriteLine($"  パラメータ: {paramStr}");
+        const string sql = "SELECT DRAWDATA, BGDATA FROM BODYINFO WITH (NOLOCK) WHERE MEMONO = @Memono";
+        await using var conn = new SqlConnection(_connectionString);
+        await conn.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var row = await conn.QuerySingleOrDefaultAsync<ImageDataRow>(
+            new CommandDefinition(sql, new { Memono = memono }, cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        return row == null ? (null, null) : (row.DRAWDATA, row.BGDATA);
+    }
+
+    /// <summary>キー取得用SQLをログ出力</summary>
+    public static void LogKeysSql(string sql, long lastMemono, int batchSize)
+    {
+        Console.WriteLine($"実行SQL(キー取得): {sql}");
+        Console.WriteLine($"  パラメータ: LastMemono={lastMemono}, BatchSize={batchSize}");
+    }
+
+    /// <summary>キー（MEMONO, ISTCD, RYONO）のみ。画像は別クエリで取得。</summary>
+    public sealed class RecordKey
+    {
+        public long MEMONO { get; set; }
+        public string? ISTCD { get; set; }
+        public int RYONO { get; set; }
+    }
+
+    private sealed class ImageDataRow
+    {
+        public string? DRAWDATA { get; set; }
+        public string? BGDATA { get; set; }
     }
 }

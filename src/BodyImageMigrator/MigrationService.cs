@@ -64,30 +64,16 @@ public class MigrationService
         if (_options.DryRun)
             Console.WriteLine("【DRY-RUN】アップロードは行いません。");
 
-        // ④ DBから移行データを取得
-        var (records, executedSql) = await repository.GetRecordsAsync(
-            _options.MemonoFrom,
-            _options.MemonoTo,
-            _options.Istcd,
-            _options.Ryono,
-            _options.From,
-            _options.To,
-            _options.ExcludeDeleted,
-            _options.Limit,
-            cancellationToken).ConfigureAwait(false);
+        // ④ キーをバッチ取得し、1件ずつ画像を取得して処理（メモリ安全）
+        var (totalProcessed, keysSql) = await ProcessInBatchesAsync(repository, uploader, logger, cancellationToken).ConfigureAwait(false);
 
-        Console.WriteLine($"取得件数: {records.Count} 件（MEMONO 昇順）");
-
-        // ⑤ S3バケットに移行データを出力
-        var semaphore = new SemaphoreSlim(_parallel);
-        var tasks = records.Select(r => ProcessRecordAsync(r, uploader, logger, semaphore, cancellationToken));
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        Console.WriteLine($"取得件数: {totalProcessed} 件（MEMONO 昇順）");
 
         var endTime = DateTime.Now;
         var duration = endTime - startTime;
         var totalTarget = logger.SuccessCount + logger.FailureCount + logger.SkippedCount;
 
-        WriteSummaryLog(summaryPath, startTime, endTime, duration, totalTarget, logger, records.Count, executedSql);
+        WriteSummaryLog(summaryPath, startTime, endTime, duration, totalTarget, logger, totalProcessed, keysSql);
 
         Console.WriteLine("処理完了。");
     }
@@ -142,8 +128,59 @@ public class MigrationService
         File.WriteAllText(path, content, System.Text.Encoding.UTF8);
     }
 
-    private async Task ProcessRecordAsync(
-        BodyInfoRecord record,
+    /// <summary>キーをバッチ取得し、各キーで1件ずつ画像取得して処理。メモリ安全。</summary>
+    private async Task<(int TotalProcessed, string KeysSql)> ProcessInBatchesAsync(
+        BodyInfoRepository repository,
+        S3Uploader uploader,
+        CsvLogger logger,
+        CancellationToken cancellationToken)
+    {
+        const int batchSize = 100;
+        var lastMemono = 0L;
+        var totalProcessed = 0;
+        var remaining = _options.Limit;
+        string keysSql = "";
+
+        var semaphore = new SemaphoreSlim(_parallel);
+
+        while (true)
+        {
+            var take = remaining.HasValue ? Math.Min(batchSize, remaining.Value - totalProcessed) : batchSize;
+            if (remaining.HasValue && take <= 0) break;
+
+            var (keys, sql) = await repository.GetRecordKeysBatchAsync(
+                lastMemono,
+                take,
+                _options.MemonoFrom,
+                _options.MemonoTo,
+                _options.Istcd,
+                _options.Ryono,
+                _options.From,
+                _options.To,
+                _options.ExcludeDeleted,
+                cancellationToken).ConfigureAwait(false);
+
+            if (keys.Count == 0) break;
+            if (string.IsNullOrEmpty(keysSql)) keysSql = sql;
+
+            BodyInfoRepository.LogKeysSql(sql, lastMemono, take);
+
+            var tasks = keys.Select(key => ProcessKeyAsync(key, repository, uploader, logger, semaphore, cancellationToken));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            totalProcessed += keys.Count;
+            lastMemono = keys.Max(k => k.MEMONO);
+
+            if (remaining.HasValue && totalProcessed >= remaining.Value) break;
+        }
+
+        return (totalProcessed, keysSql);
+    }
+
+    /// <summary>1キー分: 画像を取得して処理（1件ずつ取得でメモリ安全）</summary>
+    private async Task ProcessKeyAsync(
+        BodyInfoRepository.RecordKey key,
+        BodyInfoRepository repository,
         S3Uploader uploader,
         CsvLogger logger,
         SemaphoreSlim semaphore,
@@ -152,29 +189,50 @@ public class MigrationService
         await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var istcd = record.ISTCD ?? "";
-            var ryono = record.RYONO;
-            var memono = record.MEMONO;
+            var (drawData, bgData) = await repository.GetImageDataAsync(key.MEMONO, cancellationToken).ConfigureAwait(false);
 
-            var drawEmpty = string.IsNullOrWhiteSpace(record.DRAWDATA);
-            var bgEmpty = string.IsNullOrWhiteSpace(record.BGDATA);
-
-            if (drawEmpty && bgEmpty)
+            var record = new BodyInfoRecord
             {
-                logger.LogSkipped(istcd, ryono, memono, "SKIPPED_EMPTY_DATA");
-                return;
-            }
+                MEMONO = key.MEMONO,
+                ISTCD = key.ISTCD,
+                RYONO = key.RYONO,
+                DRAWDATA = drawData,
+                BGDATA = bgData,
+                DLTFLG = false
+            };
 
-            if (!drawEmpty)
-                await ProcessOneAsync(record, istcd, ryono, memono, isBg: false, record.DRAWDATA!, uploader, logger, cancellationToken).ConfigureAwait(false);
-
-            if (!bgEmpty)
-                await ProcessOneAsync(record, istcd, ryono, memono, isBg: true, record.BGDATA!, uploader, logger, cancellationToken).ConfigureAwait(false);
+            await ProcessRecordAsync(record, uploader, logger, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
             semaphore.Release();
         }
+    }
+
+    private async Task ProcessRecordAsync(
+        BodyInfoRecord record,
+        S3Uploader uploader,
+        CsvLogger logger,
+        CancellationToken cancellationToken)
+    {
+        var istcd = record.ISTCD ?? "";
+        var ryono = record.RYONO;
+        var memono = record.MEMONO;
+
+        var drawEmpty = string.IsNullOrWhiteSpace(record.DRAWDATA);
+        var bgEmpty = string.IsNullOrWhiteSpace(record.BGDATA);
+
+        if (drawEmpty && bgEmpty)
+        {
+            logger.LogSkipped(istcd, ryono, memono, "SKIPPED_EMPTY_DATA");
+            return;
+        }
+
+        if (!drawEmpty)
+            await ProcessOneAsync(record, istcd, ryono, memono, isBg: false, record.DRAWDATA!, uploader, logger, cancellationToken).ConfigureAwait(false);
+
+        if (!bgEmpty)
+            await ProcessOneAsync(record, istcd, ryono, memono, isBg: true, record.BGDATA!, uploader, logger, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task ProcessOneAsync(

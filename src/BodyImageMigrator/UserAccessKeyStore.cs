@@ -15,7 +15,8 @@ public static class UserAccessKeyStore
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
     };
 
     /// <summary>JSON を保存するディレクトリ: publish\BodyImageMigration\UserAccessControl</summary>
@@ -39,7 +40,7 @@ public static class UserAccessKeyStore
             if (File.Exists(path))
             {
                 var json = File.ReadAllText(path, Encoding.UTF8);
-                var list = JsonSerializer.Deserialize<List<UserAccessKeyEntry>>(json);
+                var list = JsonSerializer.Deserialize<List<UserAccessKeyEntry>>(json, JsonOptions);
                 return list ?? new List<UserAccessKeyEntry>();
             }
             return new List<UserAccessKeyEntry>();
@@ -48,7 +49,7 @@ public static class UserAccessKeyStore
         try
         {
             var json = File.ReadAllText(path, Encoding.UTF8);
-            var list = JsonSerializer.Deserialize<List<UserAccessKeyEntry>>(json);
+            var list = JsonSerializer.Deserialize<List<UserAccessKeyEntry>>(json, JsonOptions);
             return list ?? new List<UserAccessKeyEntry>();
         }
         catch
